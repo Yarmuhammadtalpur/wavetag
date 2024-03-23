@@ -1,0 +1,2109 @@
+openapi: 3.0.0
+info:
+  title: WageTags
+  description: The Wavetags aims to develop a versatile mobile application available on iOS, Android, and web platforms. Upon completing their profiles, users can personalize their profile URLs and generate QR codes for easy sharing. Notably, the app supports NFC tag connectivity to write user profile URLs. For business profiles, customized QR codes, branded push notifications, and a variety of contact options, including phone numbers, emails, and location addresses, are featured. The app seamlessly integrates with various social media platforms, supports business-related features such as website links and Google reviews, and allows content creation with text, videos, and file uploads. Additionally, users can link their music preferences from platforms like Spotify, YouTube Music, Apple Music, and Soundcloud. The application also offers a comprehensive medical ID section, a contact form for leads, Google Analytics for analytics purposes, and potential future updates for payment options like Payu, Paypal, Venmo, and Gofundme. Third-party integration includes Amazon affiliate store and an optional leads form for reviews. Overall, the Wavetags is a feature-rich, all-in-one application designed to cater to personal, professional, and business needs with a user-friendly interface.
+  version: 1.0.0
+tags:
+  - name: Users API
+    description: Everything about users
+  - name: Links API
+    description: Everything about links
+securityDefinitions:
+  bearerAuth:
+    type: apiKey
+    name: Authorization
+    in: header
+paths:
+  # User Login Endpoint
+  /api/auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: User Login
+      description: Endpoint for user login and obtaining an access token.s
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserLogin"
+      responses:
+        "200":
+          description: Successful login
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginResponse"
+
+  # Token Refresh Mechanism
+  /api/auth/refresh:
+    get:
+      tags:
+        - Authentication
+      summary: Refresh Access Token
+      description: Endpoint to refresh access tokens without re-entering credentials.
+      responses:
+        "200":
+          description: Token refreshed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+
+  # Logout Endpoint
+  /api/auth/logout:
+    post:
+      tags:
+        - Authentication
+      summary: User logout
+      description: Logs out a user and revokes the provided JWT token.
+      security:
+        - bearerAuth: []
+
+      responses:
+        "200":
+          description: User logged out successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Success message
+        "401":
+          description: Invalid token or token has been revoked
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+
+  # USER API
+  /api/users:
+    # GET REQUEST
+    get:
+      tags:
+        - Users API
+      summary: Retrieve all users
+      description: Retrieves all users from the database and responds with a JSON object containing the status and user data.
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: Status of the response (success)
+                  data:
+                    type: array
+                    description: Array of user objects
+                    items:
+                      $ref: "#/components/schemas/User"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        "404":
+          description: Users not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+
+    # POST REQUEST
+    post:
+      tags:
+        - Users API
+      summary: Create a new user
+      description: Creates a new user in the database.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserInput"
+      responses:
+        "201":
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          description: Invalid user data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+
+  # USER API with ID Parameter
+  /api/users/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+        description: User ID
+    # Get Request with ID Parameter
+    get:
+      tags:
+        - Users API
+      summary: Retrieve a user by ID
+      description: Retrieves a user from the database by ID.
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        "400":
+          description: Invalid user ID
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+
+    # Patch Request with ID Parameter
+    patch:
+      tags:
+        - Users API
+      summary: Update a user by ID
+      description: Updates a user in the database by ID.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserUpdate"
+      responses:
+        "200":
+          description: User updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        "400":
+          description: Invalid user ID or data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+
+    # Delete Request with ID Parameter
+    delete:
+      tags:
+        - Users API
+      summary: Delete a user by ID
+      description: Deletes a user from the database by ID.
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: User deleted successfully
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+
+  # LINK API
+  /api/links:
+    # GET REQUEST
+    get:
+      tags:
+        - Links API
+      summary: Retrieve all links
+      description: Retrieves all links from the database and responds with a JSON object containing the status and link data.
+      "401":
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/errorResponse"
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: Status of the response (success)
+                  data:
+                    type: array
+                    description: Array of link objects
+                    items:
+                      $ref: "#/components/schemas/Link"
+        "404":
+          description: Links not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+
+    # POST REQUEST
+    post:
+      tags:
+        - Links API
+      summary: Create a new link
+      description: Creates a new link in the database.
+      "401":
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/errorResponse"
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LinkInput"
+      responses:
+        "201":
+          description: Link created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Link"
+        "400":
+          description: Invalid link data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+
+  # LINK API with ID Parameter
+  /api/links/{linkId}:
+    parameters:
+      - in: path
+        name: linkId
+        required: true
+        schema:
+          type: string
+        description: Link ID
+    # Get Request with ID Parameter
+    get:
+      tags:
+        - Links API
+      summary: Retrieve a link by ID
+      description: Retrieves a link from the database by ID.
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Link"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        "400":
+          description: Invalid link ID
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        "404":
+          description: Link not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+
+    # Patch Request with ID Parameter
+    patch:
+      tags:
+        - Links API
+      summary: Update a link by ID
+      description: Updates a link in the database by ID.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LinkUpdate"
+      responses:
+        "200":
+          description: Link updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Link"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        "400":
+          description: Invalid link ID or data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        "404":
+          description: Link not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+
+    # Delete Request with ID Parameter
+    delete:
+      tags:
+        - Links API
+      summary: Delete a link by ID
+      description: Deletes a link from the database by ID.
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Link deleted successfully
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        "404":
+          description: Link not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+  # Blog API
+  /api/blogs:
+    get:
+      tags:
+        - Blogs API
+      summary: Retrieve all blogs
+      description: Retrieves all blogs from the database and responds with a JSON object containing the status and blog data.
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: Status of the response (success)
+                  data:
+                    type: array
+                    description: Array of blog objects
+                    items:
+                      $ref: "#/components/schemas/Blog"
+        "404":
+          description: Blogs not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+    post:
+      tags:
+        - Blogs API
+      summary: Create a new blog
+      description: Creates a new blog in the database.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BlogInput"
+      responses:
+        "201":
+          description: Blog created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Blog"
+        "400":
+          description: Invalid blog data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+  # Blog API with ID Parameter
+  /api/blogs/{blogId}:
+    parameters:
+      - in: path
+        name: blogId
+        required: true
+        schema:
+          type: string
+        description: Blog ID
+    get:
+      tags:
+        - Blogs API
+      summary: Retrieve a blog by ID
+      description: Retrieves a blog from the database by ID.
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Blog"
+        "404":
+          description: Blog not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+    patch:
+      tags:
+        - Blogs API
+      summary: Update a blog by ID
+      description: Updates a blog in the database by ID.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BlogUpdate"
+      responses:
+        "200":
+          description: Blog updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Blog"
+        "400":
+          description: Invalid blog ID or data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        "404":
+          description: Blog not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+    delete:
+      tags:
+        - Blogs API
+      summary: Delete a blog by ID
+      description: Deletes a blog from the database by ID.
+      responses:
+        "200":
+          description: Blog deleted successfully
+        "404":
+          description: Blog not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+  # Upload Media
+  /api/uploads/image/{imageType}:
+    post:
+      tags: [Images]
+      parameters:
+        - in: path
+          name: imageType
+          required: true
+          schema:
+            type: string
+          description: Type of the image
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                images:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+      responses:
+        "201":
+          description: Image uploaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Bad request, no image selected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # CARD API
+  /api/card:
+    # GET REQUEST
+    get:
+      tags:
+        - Card API
+      summary: Retrieve all cards
+      description: Retrieves all cards from the database and responds with a JSON object containing the status and card data.
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: Status of the response (success)
+                  data:
+                    type: array
+                    description: Array of card objects
+                    items:
+                      $ref: "#/components/schemas/Card"
+        "404":
+          description: Cards not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+
+    # POST REQUEST
+    post:
+      tags:
+        - Card API
+      summary: Create a new card
+      description: Creates a new card in the database.
+      requestBody:
+        # required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CardInput"
+      responses:
+        "201":
+          description: Card created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Card"
+        "400":
+          description: Invalid card data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+
+  # CARD API with ID Parameter
+  /api/card/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+        description: Card ID
+
+    # Get Request with ID Parameter
+    get:
+      tags:
+        - Card API
+      summary: Retrieve a card by ID
+      description: Retrieves a card from the database by ID.
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Card"
+        "400":
+          description: Invalid card ID
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        "404":
+          description: Card not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+
+    # Patch Request with ID Parameter
+    patch:
+      tags:
+        - Card API
+      summary: Update a card by ID
+      description: Updates a card in the database by ID.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CardUpdate"
+      responses:
+        "200":
+          description: Card updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Card"
+        "400":
+          description: Invalid card ID or data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        "404":
+          description: Card not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+
+    # Delete Request with ID Parameter
+    delete:
+      tags:
+        - Card API
+      summary: Delete a card by ID
+      description: Deletes a card from the database by ID.
+      responses:
+        "200":
+          description: Card deleted successfully
+        "404":
+          description: Card not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+
+  # LEAD FORM API with ID Parameter
+  /api/leadForm/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+        description: Lead Form ID
+
+    # Patch Request with ID Parameter
+    patch:
+      tags:
+        - Lead Form API
+      summary: Update a lead form by ID
+      description: Updates a lead form in the database by ID.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LeadFormUpdate"
+      responses:
+        "200":
+          description: Lead form updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LeadForm"
+        "400":
+          description: Invalid lead form ID or data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        "404":
+          description: Lead form not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+
+    # Get Request with ID Parameter
+    get:
+      tags:
+        - Lead Form API
+      summary: Retrieve a lead form by ID
+      description: Retrieves a lead form from the database by ID.
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LeadForm"
+        "400":
+          description: Invalid lead form ID
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        "404":
+          description: Lead form not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+
+  # LEADFORM API with ID Parameters
+  /api/setting/support-message:
+    post:
+      summary: "Create Support"
+      tags:
+        - Support API
+      description: "Create support with the provided subject and message."
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SupportCreateRequest"
+      responses:
+        "201":
+          description: "Support created successfully."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SupportCreateResponse"
+        "400":
+          description: "Bad Request - User not found."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        "500":
+          description: "Internal Server Error - Something went wrong."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+    get:
+      summary: "Get all support messages"
+      tags:
+        - Support API
+      description: "Retrieve all support messages with user details."
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: "Support messages retrieved successfully."
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  status:
+                    type: "string"
+                  data:
+                    type: "array"
+                    items:
+                      $ref: "#/components/schemas/SupportMessage"
+        "400":
+          description: "Bad Request - User not found."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        "500":
+          description: "Internal Server Error - Something went wrong."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+
+  /api/setting/feature-request:
+    post:
+      summary: "Create Feature Request"
+      tags:
+        - Feature Request API
+      description: "Create Feature Request with the provided message."
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FeatureReqCreateRequest"
+      responses:
+        "201":
+          description: "Feature Request created successfully."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FeatureReqCreateResponse"
+        "400":
+          description: "Bad Request - User not found."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        "500":
+          description: "Internal Server Error - Something went wrong."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+    get:
+      summary: "Get all feature requests"
+      tags:
+        - Feature Request API
+      description: "Retrieve all feature requests with user details."
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: "Feature requests retrieved successfully."
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  status:
+                    type: "string"
+                  data:
+                    type: "array"
+                    items:
+                      $ref: "#/components/schemas/FeatureRequest"
+        "400":
+          description: "Bad Request - User not found."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        "500":
+          description: "Internal Server Error - Something went wrong."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+  /api/subscription/user/{userId}/{subscriptionId}:
+    post:
+      summary: Create user subscription
+      description: Create a new user subscription.
+      security:
+        - bearerAuth: []
+      tags:
+        - Subscription API
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+          description: The ID of the user.
+        - in: path
+          name: subscriptionId
+          required: true
+          schema:
+            type: string
+          description: The ID of the subscription.
+      responses:
+        "201":
+          description: User subscription created successfully
+          content:
+            application/json:
+              example:
+                status: success
+                data:
+                  _id: 605e36bdeb60f5252c8542cd
+                  subscription: free
+                  user: 605e36bdeb60f5252c8542cb
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              example:
+                status: error
+                message: User not found
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        "500":
+          description: "Internal Server Error - Something went wrong."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+  /api/subscription/user/{userId}:
+    get:
+      summary: Get user subscription
+      description: Retrieve a user's subscription with user detail as well as subscription details.
+      security:
+        - bearerAuth: []
+      tags:
+        - Subscription API
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+          description: The ID of the user.
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              example:
+                status: success
+                data:
+                  _id: 605e36bdeb60f5252c8542cd
+                  subscription: free
+                  user:
+                    _id: 605e36bdeb60f5252c8542cb
+                    username: john_doe
+                    email: john.doe@example.com
+                    full_name: John
+                    # lastName: Doe
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              example:
+                status: error
+                message: User not found
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        "500":
+          description: "Internal Server Error - Something went wrong."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+  /api/subscription:
+    post:
+      summary: Create a new subscription
+      tags:
+        - Subscription API
+      description: Endpoint to create a new subscription with subscription, planType, price and features.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                subscription:
+                  type: string
+                  enum: [free, premium, business] # Adjust based on your SubscriptionTypes
+                planType:
+                  type: monthly
+                price:
+                  type: number
+                features:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        "201":
+          description: Subscription created successfully
+          content:
+            application/json:
+              example:
+                status: success
+                data:
+                  _id: 605e36bdeb60f5252c8542cd
+                  subscription: free
+                  planType: Basic
+                  price: 0
+                  features: []
+        "400":
+          description: "Bad Request - User not found."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        "500":
+          description: "Internal Server Error - Something went wrong."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+    get:
+      summary: Get all subscriptions
+      description: Retrieve a list of all subscriptions.
+      security:
+        - bearerAuth: []
+      tags:
+        - Subscription API
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              example:
+                status: success
+                data:
+                  - _id: 605e36bdeb60f5252c8542cd
+                    subscription: free
+                    planType: monthly
+                    price: 0
+                    features: []
+                  - _id: 605e36bdeb60f5252c8542ce
+                    subscription: premium
+                    planType: yearly
+                    price: 9.99
+                    features: ["Feature 1", "Feature 2"]
+        "400":
+          description: "Bad Request - User not found."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        "500":
+          description: "Internal Server Error - Something went wrong."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+    # LEADFORM API with ID Parameters
+  /api/form-data/{leadFormId}/{cardId}/{userId}:
+    post:
+      summary: "Create FormData"
+      tags:
+        - Lead FormData API
+      description: "Create FormData for a specific lead form and card."
+      requestBody:
+        - in: "path"
+          required: true
+          description: "ID of the lead form."
+          name: "cardId"
+          type: "string"
+    security:
+      - bearerAuth: []
+    responses:
+      "201":
+        description: "Form data created successfully."
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FormData"
+      parameters:
+        - in: "path"
+          name: "leadFormId"
+          type: "string"
+          required: true
+          description: "ID of the lead form."
+        - in: "path"
+          name: "cardId"
+          type: "string"
+          required: true
+          description: "ID of the card."
+        - in: "path"
+          name: "userId"
+          type: "string"
+          required: true
+          description: "ID of the user."
+      security:
+        - bearerAuth: []
+      responses:
+        "201":
+          description: "Form data created successfully."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FormDataResponse"
+        "400":
+          description: Invalid user data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+  /api/form-data/{leadFormId}:
+    get:
+      tags:
+        - Lead FormData API
+      summary: "Get Form Data by Lead Form ID"
+      description: "Retrieve form data based on the leadFormId."
+      parameters:
+        - name: "leadFormId"
+          in: "path"
+          description: "ID of the lead form."
+          required: true
+          type: "string"
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: "Form data retrieved successfully."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FormDataSuccessResponse"
+        "400":
+          description: Invalid user data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorResponse"
+
+components:
+  securitySchemes:
+    bearerAuth: # arbitrary name for the security scheme
+      type: http
+      scheme: bearer
+      bearerFormat: JWT # optional, arbitrary value for documentation purposes
+  # Schemas
+  schemas:
+    UnauthorizedError:
+      description: Access token is missing or invalid
+    errorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message
+        status:
+          type: string
+          description: Status of the response
+        stack:
+          type: string
+          description: Stack trace of the error
+    User:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: User ID
+        username:
+          type: string
+          description: Username
+        email:
+          type: string
+          description: Email
+        phoneNumber:
+          type: string
+          description: Phone Number
+        full_name:
+          type: string
+          description: Full Name
+        # lastName:
+        #   type: string
+        #   description: Last Name
+        QrCode:
+          type: string
+          description: QR Code
+      required:
+        - username
+        - email
+        - phoneNumber
+        - full_name
+        - lastName
+    UserInput:
+      type: object
+      properties:
+        username:
+          type: string
+          description: Username
+        email:
+          type: string
+          description: Email
+        phoneNumber:
+          type: string
+          description: Phone Number
+        full_name:
+          type: string
+          description: Full Name
+        # lastName:
+        #   type: string
+        #   description: Last Name
+        password:
+          type: string
+          description: Password
+      required:
+        - username
+        - email
+        - phoneNumber
+        - full_name
+        # - lastName
+        - password
+    UserUpdate:
+      type: object
+      description: Send the updated user data you want to update (full_name, email, phone number)
+      properties:
+        full_name:
+          type: string
+          description: Full Name
+        # lastName:
+        #   type: string
+        #   description: Last Name
+    # UserLinkType schema definition
+    UserLinkType:
+      type: object
+      properties:
+        user:
+          type: string
+          description: The unique identifier for the user.
+        links:
+          type: array
+          items:
+            type: object
+            properties:
+              subLink:
+                type: string
+                description: The sublink associated with the user.
+              link:
+                type: string
+                description: The unique identifier for the linked resource.
+      required:
+        - user
+        - links
+    # UserProfileType schema definition
+    UserProfileType:
+      type: object
+      properties:
+        profilePicture:
+          type: string
+          description: URL or path to the user's profile picture.
+        user:
+          type: string
+          description: The unique identifier for the user.
+        address:
+          type: object
+          properties:
+            lat:
+              type: number
+              description: Latitude of the user's address.
+            lon:
+              type: number
+              description: Longitude of the user's address.
+            address:
+              type: string
+              description: The complete address of the user.
+          required:
+            - lat
+            - lon
+            - address
+        bio:
+          type: string
+          description: A brief biography or description of the user.
+        theme:
+          type: string
+          description: The unique identifier for the selected theme.
+        coverpicture:
+          type: string
+          description: URL or path to the user's cover picture.
+        cardTitle:
+          type: string
+          description: The title for the user's card.
+      required:
+        - profilePicture
+        - user
+        - address
+        - bio
+        - theme
+        - coverpicture
+        - cardTitle
+        # ThemeType schema definition
+    ThemeType:
+      type: object
+      properties:
+        name:
+          type: string
+          description: The name of the theme.
+        themeId:
+          type: string
+          description: The unique identifier for the theme.
+      required:
+        - name
+        - themeId
+        # Link schema definition
+    Link:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: Link ID
+        name:
+          type: string
+          description: Name
+        link:
+          type: string
+          description: Link
+        icon:
+          type: string
+          description: Icon
+
+    LinkInput:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name
+        link:
+          type: string
+          description: Link
+        icon:
+          type: string
+          description: Icon
+
+    LinkUpdate:
+      type: object
+      description: Send the updated link data you want to update (name, link, icon)
+      properties:
+        name:
+          type: string
+          description: Name
+        link:
+          type: string
+          description: Link
+        icon:
+          type: string
+          description: Icon
+
+    Blog:
+      type: object
+      properties:
+        heading:
+          type: string
+        blogcontent:
+          type: string
+        cardid:
+          type: string
+        description:
+          type: string
+        coverimg:
+          type: string
+      required:
+        - heading
+        - blogcontent
+        - cardid
+        - description
+        - coverimg
+    BlogInput:
+      type: object
+      properties:
+        heading:
+          type: string
+        blogcontent:
+          type: string
+        cardid:
+          type: string
+        description:
+          type: string
+        coverimg:
+          type: string
+      required:
+        - heading
+        - blogcontent
+        - cardid
+        - description
+        - coverimg
+    BlogUpdate:
+      type: object
+      properties:
+        heading:
+          type: string
+        blogcontent:
+          type: string
+        cardid:
+          type: string
+        description:
+          type: string
+        coverimg:
+          type: string
+    Card:
+      type: object
+      properties:
+        cardTitle:
+          type: string
+          description: The title of the card.
+        user:
+          type: string
+          description: The ID of the user associated with the card.
+        # theme:
+        #   type: string
+        #   description: The ID of the theme associated with the card.
+        hash:
+          type: string
+          description: The hash value of the card.
+        fields:
+          type: object
+          properties:
+            name:
+              type: string
+              description: The name associated with the card.
+            title:
+              type: string
+              description: The title associated with the card.
+            company:
+              type: string
+              description: The company associated with the card.
+            address:
+              type: string
+              description: The address associated with the card.
+            bio:
+              type: string
+              description: The biography associated with the card.
+        layout:
+          type: string
+          description: The layout of the card.
+        socialLinks:
+          type: array
+          items:
+            type: object
+            properties:
+              subLink:
+                type: string
+                description: The sub-link associated with the social link.
+              link:
+                type: string
+                description: The ID of the link associated with the social link.
+        profilePicture:
+          type: string
+          description: The URL or path of the profile picture associated with the card.
+        coverPicture:
+          type: string
+          description: The URL or path of the cover picture associated with the card.
+        companyLogo:
+          type: string
+          description: The URL or path of the company logo associated with the card.
+        qrCode:
+          type: string
+          description: The URL or path of the QR code associated with the card.
+        isLeadEnabled:
+          type: boolean
+          description: Indicates whether lead is enabled for the card.
+
+    UserLogin:
+      type: object
+      properties:
+        email:
+          type: string
+          description: User's email
+        password:
+          type: string
+          description: User's password
+
+    LoginResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+          description: Refreshed access token
+
+    CardInput:
+      type: object
+      properties:
+        cardTitle:
+          type: string
+          description: The title of the card.
+        user:
+          type: string
+          description: The ID of the user associated with the card.
+        fields:
+          type: object
+          properties:
+            name:
+              type: string
+              description: The name associated with the card.
+            title:
+              type: string
+              description: The title associated with the card.
+            company:
+              type: string
+              description: The company associated with the card.
+            address:
+              type: string
+              description: The address associated with the card.
+            bio:
+              type: string
+              description: The biography associated with the card.
+          layout:
+            type: string
+            description: The layout of the card.
+            socialLinks:
+              type: array
+              items:
+                type: object
+                properties:
+                  subLink:
+                    type: string
+                    description: The sub-link associated with the social link.
+                  link:
+                    type: string
+                    description: The ID of the link associated with the social link.
+            profilePicture:
+              type: string
+              description: The URL or path of the profile picture associated with the card.
+            coverPicture:
+              type: string
+              description: The URL or path of the cover picture associated with the card.
+            companyLogo:
+              type: string
+              description: The URL or path of the company logo associated with the card.
+            qrCode:
+              type: string
+              description: The URL or path of the QR code associated with the card.
+            isLeadEnabled:
+              type: boolean
+              description: Indicates whether lead is enabled for the card.
+          required:
+            - user
+
+        CardUpdate:
+          type: object
+          properties:
+            cardTitle:
+              type: string
+              description: The title of the card.
+            user:
+              type: string
+              description: The ID of the user associated with the card.
+            # theme:
+            #   type: string
+            #   description: The ID of the theme associated with the card.
+            fields:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: The name associated with the card.
+                title:
+                  type: string
+                  description: The title associated with the card.
+                company:
+                  type: string
+                  description: The company associated with the card.
+                address:
+                  type: string
+                  description: The address associated with the card.
+                bio:
+                  type: string
+                  description: The biography associated with the card.
+            layout:
+              type: string
+              description: The layout of the card.
+            socialLinks:
+              type: array
+              items:
+                type: object
+                properties:
+                  subLink:
+                    type: string
+                    description: The sub-link associated with the social link.
+                  link:
+                    type: string
+                    description: The ID of the link associated with the social link.
+            profilePicture:
+              type: string
+              description: The URL or path of the profile picture associated with the card.
+            coverPicture:
+              type: string
+              description: The URL or path of the cover picture associated with the card.
+            companyLogo:
+              type: string
+              description: The URL or path of the company logo associated with the card.
+            qrCode:
+              type: string
+              description: The URL or path of the QR code associated with the card.
+            isLeadEnabled:
+              type: boolean
+              description: Indicates whether lead is enabled for the card.
+          required:
+            - user
+    updateLeadFormById:
+      type: object
+      properties:
+        params:
+          type: object
+          properties:
+            id:
+              type: string
+              description: The unique identifier of the lead form.
+        body:
+          type: object
+          properties:
+            header:
+              type: string
+              description: The updated header of the lead form.
+            fields:
+              type: array
+              items:
+                type: object
+                properties:
+                  fieldType:
+                    type: string
+                    description: The type of the field (e.g., 'text' or 'textarea').
+                  options:
+                    type: array
+                    items:
+                      type: string
+                    description: An array of options for the field.
+        response:
+          type: object
+          properties:
+            message:
+              type: string
+              description: A message indicating the status of the update.
+            status:
+              type: string
+              description: The status of the update (e.g., 'success').
+            data:
+              type: object
+              description: The updated lead form data.
+              properties:
+                _id:
+                  type: string
+                  description: The unique identifier of the lead form.
+                header:
+                  type: string
+                  description: The updated header of the lead form.
+                fields:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      fieldType:
+                        type: string
+                        description: The type of the field (e.g., 'text' or 'textarea').
+                      options:
+                        type: array
+                        items:
+                          type: string
+                        description: An array of options for the field.
+    SupportCreateRequest:
+      type: object
+      properties:
+        subject:
+          type: string
+        message:
+          type: string
+        user:
+          type: string
+    SubscriptionCreateRequest:
+      type: object
+      properties:
+        subscription:
+          type: string
+        planType:
+          type: string
+        price:
+          type: string
+        features:
+          type: string
+    FeatureReqCreateRequest:
+      type: object
+      properties:
+        message:
+          type: string
+        user:
+          type: string
+    SupportCreateResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        status:
+          type: string
+        data:
+          $ref: "#/components/schemas/SupportItem"
+    SupportItem:
+      type: object
+      properties:
+        _id:
+          type: string
+        user:
+          type: string
+        subject:
+          type: string
+        message:
+          type: string
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+        __v:
+          type: integer
+    FeatureReqCreateResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        status:
+          type: string
+        data:
+          $ref: "#/components/schemas/FeatureReqItem"
+    FeatureReqItem:
+      type: object
+      properties:
+        _id:
+          type: string
+        user:
+          type: string
+        message:
+          type: string
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+        __v:
+          type: integer
+    FeatureRequest:
+      type: "object"
+      properties:
+        _id:
+          type: "string"
+        user:
+          type: "object"
+          properties:
+            _id:
+              type: "string"
+            username:
+              type: "string"
+            email:
+              type: "string"
+            full_name:
+              type: "string"
+            # lastName:
+            #   type: "string"
+        message:
+          type: "string"
+      required:
+        - _id
+        - user
+        - message
+    SupportMessage:
+      type: "object"
+      properties:
+        _id:
+          type: "string"
+        user:
+          type: "object"
+          properties:
+            _id:
+              type: "string"
+            username:
+              type: "string"
+            email:
+              type: "string"
+            full_name:
+              type: "string"
+            # lastName:
+            #   type: "string"
+        subject:
+          type: "string"
+        message:
+          type: "string"
+      required:
+        - _id
+        - user
+        - subject
+        - message
+    FormData:
+      type: object
+      properties:
+        formData:
+          type: array
+          items:
+            $ref: "#/components/schemas/InputType"
+    FormDataResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        status:
+          type: string
+        savedFormData:
+          $ref: "#/components/schemas/FormData"
+    InputType:
+      type: object
+      properties:
+        _id:
+          type: string
+        value:
+          type: string
+        label:
+          type: "string"
+
+    FormDataSuccessResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        status:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/FormDataItem"
+    FormDataItem:
+      type: object
+      properties:
+        _id:
+          type: string
+        leadForm:
+          type: string
+        data:
+          type: array
+          items:
+            type: string
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+        __v:
+          type: integer

@@ -1,0 +1,1 @@
+All the project configuration will be here (database, redis)
